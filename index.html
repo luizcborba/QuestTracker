@@ -3,260 +3,646 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quest Tracker - Missões Diárias</title>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Quest Tracker</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body.light-theme {
+            background: linear-gradient(135deg, #1a1d29 0%, #0f1419 100%);
+            color: #e8e8e8;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        body.light-theme .theme-toggle {
+            background: rgba(255, 153, 0, 0.2);
+            border: 1px solid rgba(255, 153, 0, 0.5);
+        }
+
+        body.light-theme .theme-toggle:hover {
+            background: rgba(255, 153, 0, 0.35);
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-theme .stats {
+            background: rgba(255, 153, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            transition: transform 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-theme .stat-box {
+            background: rgba(255, 153, 0, 0.15);
+            border: 1px solid rgba(255, 153, 0, 0.4);
+        }
+
+        .stat-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .streak-fire {
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .quest-list {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-theme .quest-list {
+            background: rgba(255, 153, 0, 0.08);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .quest-item {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        body.light-theme .quest-item {
+            background: rgba(255, 153, 0, 0.1);
+            border: 2px solid transparent;
+        }
+
+        .quest-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(5px);
+        }
+
+        body.light-theme .quest-item:hover {
+            background: rgba(255, 153, 0, 0.2);
+            border-color: rgba(255, 153, 0, 0.4);
+        }
+
+        .quest-item.completed {
+            opacity: 0.6;
+            border-color: #4ade80;
+        }
+
+        .quest-item.arena-quest {
+            flex-direction: column;
+            align-items: stretch;
+            cursor: default;
+        }
+
+        .quest-item.arena-quest:hover {
+            transform: none;
+        }
+
+        .arena-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .arena-times {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .arena-time-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        body.light-theme .arena-time-item {
+            background: rgba(255, 153, 0, 0.12);
+        }
+
+        .arena-time-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        body.light-theme .arena-time-item:hover {
+            background: rgba(255, 153, 0, 0.25);
+            border-color: rgba(255, 153, 0, 0.4);
+        }
+
+        .arena-time-item.completed {
+            border-color: #4ade80;
+            opacity: 1;
+        }
+
+        .checkbox {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e0e0e0;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        body.light-theme .checkbox {
+            border-color: #ff9900;
+        }
+
+        .quest-item.completed .checkbox,
+        .arena-time-item.completed .checkbox {
+            background: #4ade80;
+            border-color: #4ade80;
+        }
+
+        .checkmark {
+            display: none;
+            font-size: 1.2em;
+        }
+
+        .quest-item.completed .checkmark,
+        .arena-time-item.completed .checkmark {
+            display: block;
+        }
+
+        .quest-info {
+            flex: 1;
+        }
+
+        .quest-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .quest-description {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .time-label {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .quest-tag {
+            background: #ef4444;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: bold;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .reset-timer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .level-up {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 1000;
+            transition: transform 0.5s;
+        }
+
+        .level-up.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .level-up h2 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #fbbf24;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .stat-box.pulse {
+            animation: pulse 0.5s ease;
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div class="container">
+        <div class="header">
+            <h1>⚔️ Quest Tracker</h1>
+            <button class="theme-toggle" id="themeToggle">🌙</button>
+        </div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Nível</div>
+                <div class="stat-value" id="level">1</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">XP</div>
+                <div class="stat-value" id="xp">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Streak</div>
+                <div class="stat-value">
+                    <span id="streak">0</span><span class="streak-fire">🔥</span>
+                </div>
+            </div>
+        </div>
 
-        // Ícones SVG
-        const Trophy = ({ className }) => (
-            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-            </svg>
-        );
+        <div class="quest-list">
+            <div class="quest-item" data-quest="checkin">
+                <div class="checkbox">
+                    <span class="checkmark">✓</span>
+                </div>
+                <div class="quest-info">
+                    <div class="quest-title">Check-in</div>
+                </div>
+            </div>
 
-        const Flame = ({ className }) => (
-            <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2c1.2 2.8 3 5.4 5 7 2.5 2 4 5 4 8 0 4.4-3.6 8-8 8s-8-3.6-8-8c0-3 1.5-6 4-8 2-1.6 3.8-4.2 5-7z" />
-            </svg>
-        );
+            <div class="quest-item" data-quest="espolios">
+                <div class="checkbox">
+                    <span class="checkmark">✓</span>
+                </div>
+                <div class="quest-info">
+                    <div class="quest-title">Espólios</div>
+                </div>
+            </div>
 
-        const Star = ({ className }) => (
-            <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-        );
+            <div class="quest-item" data-quest="expedicao">
+                <div class="checkbox">
+                    <span class="checkmark">✓</span>
+                </div>
+                <div class="quest-info">
+                    <div class="quest-title">Expedição Infernal</div>
+                </div>
+            </div>
 
-        const CheckCircle2 = ({ className }) => (
-            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-        );
+            <div class="quest-item" data-quest="deserto">
+                <div class="checkbox">
+                    <span class="checkmark">✓</span>
+                </div>
+                <div class="quest-info">
+                    <div class="quest-title">Deserto Desconhecido</div>
+                </div>
+            </div>
 
-        const Circle = ({ className }) => (
-            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" strokeWidth={2} />
-            </svg>
-        );
+            <div class="quest-item" data-quest="pedido">
+                <div class="checkbox">
+                    <span class="checkmark">✓</span>
+                </div>
+                <div class="quest-info">
+                    <div class="quest-title">Pedido de Caça</div>
+                </div>
+            </div>
 
-        const QuestTracker = () => {
-            const quests = [
-                'Check-in',
-                'Espólios',
-                'Expedição',
-                'Infernal',
-                'Deserto Desconhecido',
-                'Pedido de Caça',
-                'Intel Report'
-            ];
+            <div class="quest-item" data-quest="intel">
+                <div class="checkbox">
+                    <span class="checkmark">✓</span>
+                </div>
+                <div class="quest-info">
+                    <div class="quest-title">Intel Report</div>
+                </div>
+            </div>
 
-            const getStoredData = () => {
-                const stored = localStorage.getItem('questData');
-                if (stored) {
-                    const data = JSON.parse(stored);
-                    const today = new Date().toDateString();
-                    
-                    if (data.lastUpdate !== today) {
-                        const allCompleted = data.completed.length === quests.length;
-                        return {
-                            completed: [],
-                            streak: allCompleted ? data.streak + 1 : 0,
-                            totalCompleted: data.totalCompleted || 0,
-                            lastUpdate: today,
-                            level: data.level || 1,
-                            xp: data.xp || 0
-                        };
-                    }
-                    return data;
-                }
-                return {
-                    completed: [],
-                    streak: 0,
-                    totalCompleted: 0,
-                    lastUpdate: new Date().toDateString(),
-                    level: 1,
-                    xp: 0
-                };
-            };
-
-            const [data, setData] = useState(getStoredData);
-            const [showAnimation, setShowAnimation] = useState('');
-
-            useEffect(() => {
-                localStorage.setItem('questData', JSON.stringify(data));
-            }, [data]);
-
-            useEffect(() => {
-                const checkMidnight = setInterval(() => {
-                    const now = new Date();
-                    if (now.getHours() === 0 && now.getMinutes() === 0) {
-                        const allCompleted = data.completed.length === quests.length;
-                        setData(prev => ({
-                            ...prev,
-                            completed: [],
-                            streak: allCompleted ? prev.streak + 1 : 0,
-                            lastUpdate: now.toDateString()
-                        }));
-                    }
-                }, 60000);
-
-                return () => clearInterval(checkMidnight);
-            }, [data.completed.length]);
-
-            const toggleQuest = (quest) => {
-                setData(prev => {
-                    const isCompleted = prev.completed.includes(quest);
-                    const newCompleted = isCompleted
-                        ? prev.completed.filter(q => q !== quest)
-                        : [...prev.completed, quest];
-                    
-                    const xpGain = isCompleted ? -15 : 15;
-                    const newXp = Math.max(0, prev.xp + xpGain);
-                    const newLevel = Math.floor(newXp / 100) + 1;
-                    
-                    if (!isCompleted) {
-                        setShowAnimation(quest);
-                        setTimeout(() => setShowAnimation(''), 500);
-                    }
-
-                    return {
-                        ...prev,
-                        completed: newCompleted,
-                        totalCompleted: isCompleted ? prev.totalCompleted - 1 : prev.totalCompleted + 1,
-                        xp: newXp,
-                        level: newLevel
-                    };
-                });
-            };
-
-            const progress = (data.completed.length / quests.length) * 100;
-            const xpProgress = (data.xp % 100);
-
-            return (
-                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
-                    <div className="max-w-2xl mx-auto">
-                        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-purple-500/30">
-                            <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <h1 className="text-3xl font-bold text-white mb-1">Quest Tracker</h1>
-                                    <p className="text-purple-300">Missões Diárias</p>
-                                </div>
-                                <div className="text-right">
-                                    <div className="flex items-center gap-2 text-orange-400 mb-2">
-                                        <Flame className="w-6 h-6" />
-                                        <span className="text-2xl font-bold">{data.streak}</span>
-                                    </div>
-                                    <p className="text-sm text-gray-400">dias de streak</p>
-                                </div>
-                            </div>
-
-                            <div className="bg-slate-900/50 rounded-xl p-4 mb-4">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-2">
-                                        <Star className="w-5 h-5 text-yellow-400" />
-                                        <span className="text-white font-semibold">Level {data.level}</span>
-                                    </div>
-                                    <span className="text-sm text-purple-300">{data.xp} XP</span>
-                                </div>
-                                <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
-                                    <div 
-                                        className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
-                                        style={{ width: `${xpProgress}%` }}
-                                    />
-                                </div>
-                                <p className="text-xs text-gray-400 mt-1">{100 - xpProgress} XP para próximo nível</p>
-                            </div>
-
-                            <div className="flex items-center gap-3 mb-2">
-                                <Trophy className="w-5 h-5 text-yellow-400" />
-                                <div className="flex-1">
-                                    <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-white">Progresso Diário</span>
-                                        <span className="text-purple-300">{data.completed.length}/{quests.length}</span>
-                                    </div>
-                                    <div className="w-full bg-slate-700 rounded-full h-2 overflow-hidden">
-                                        <div 
-                                            className="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-300"
-                                            style={{ width: `${progress}%` }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <p className="text-sm text-gray-400 mt-3">
-                                Total completado: {data.totalCompleted} quests
-                            </p>
+            <div class="quest-item arena-quest">
+                <div class="arena-header">
+                    <div class="quest-info">
+                        <div class="quest-title">Arena</div>
+                    </div>
+                    <div class="quest-tag">PVP</div>
+                </div>
+                <div class="arena-times">
+                    <div class="arena-time-item" data-quest="arena-13">
+                        <div class="checkbox">
+                            <span class="checkmark">✓</span>
                         </div>
-
-                        <div className="space-y-3">
-                            {quests.map((quest) => {
-                                const isCompleted = data.completed.includes(quest);
-                                const isAnimating = showAnimation === quest;
-                                
-                                return (
-                                    <button
-                                        key={quest}
-                                        onClick={() => toggleQuest(quest)}
-                                        className={`w-full text-left p-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02] border-2 ${
-                                            isCompleted
-                                                ? 'bg-gradient-to-r from-emerald-900/50 to-green-900/50 border-emerald-500/50'
-                                                : 'bg-slate-800/50 border-slate-700/50 hover:border-purple-500/50'
-                                        } ${isAnimating ? 'scale-105' : ''}`}
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            {isCompleted ? (
-                                                <CheckCircle2 className="w-6 h-6 text-emerald-400 flex-shrink-0" />
-                                            ) : (
-                                                <Circle className="w-6 h-6 text-gray-500 flex-shrink-0" />
-                                            )}
-                                            <div className="flex-1">
-                                                <h3 className={`font-semibold ${
-                                                    isCompleted ? 'text-emerald-300 line-through' : 'text-white'
-                                                }`}>
-                                                    {quest}
-                                                </h3>
-                                            </div>
-                                            {isCompleted && (
-                                                <span className="text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full font-semibold">
-                                                    +15 XP
-                                                </span>
-                                            )}
-                                        </div>
-                                    </button>
-                                );
-                            })}
+                        <div class="time-label">13:00</div>
+                    </div>
+                    <div class="arena-time-item" data-quest="arena-19">
+                        <div class="checkbox">
+                            <span class="checkmark">✓</span>
                         </div>
-
-                        {progress === 100 && (
-                            <div className="mt-6 bg-gradient-to-r from-yellow-900/50 to-orange-900/50 border-2 border-yellow-500/50 rounded-xl p-6 text-center animate-pulse">
-                                <Trophy className="w-12 h-12 text-yellow-400 mx-auto mb-2" />
-                                <h3 className="text-xl font-bold text-yellow-300 mb-1">
-                                    Todas as Quests Completadas!
-                                </h3>
-                                <p className="text-yellow-200/80">
-                                    Continue seu streak voltando amanhã!
-                                </p>
-                            </div>
-                        )}
+                        <div class="time-label">19:00</div>
+                    </div>
+                    <div class="arena-time-item" data-quest="arena-2230">
+                        <div class="checkbox">
+                            <span class="checkmark">✓</span>
+                        </div>
+                        <div class="time-label">22:30</div>
+                    </div>
+                    <div class="arena-time-item" data-quest="arena-23">
+                        <div class="checkbox">
+                            <span class="checkmark">✓</span>
+                        </div>
+                        <div class="time-label">23:00</div>
                     </div>
                 </div>
-            );
-        };
+            </div>
 
-        ReactDOM.render(<QuestTracker />, document.getElementById('root'));
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress">0%</div>
+            </div>
+
+            <div class="reset-timer">
+                Resetará em: <strong id="timer">--:--:--</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="level-up" id="levelUp">
+        <h2>🎉 LEVEL UP! 🎉</h2>
+        <p>Você subiu para o nível <span id="newLevel"></span>!</p>
+    </div>
+
+    <script>
+        const simpleQuests = document.querySelectorAll('.quest-item:not(.arena-quest)');
+        const arenaQuests = document.querySelectorAll('.arena-time-item');
+        const allQuests = [...simpleQuests, ...arenaQuests];
+        const progressBar = document.getElementById('progress');
+        const xpDisplay = document.getElementById('xp');
+        const levelDisplay = document.getElementById('level');
+        const streakDisplay = document.getElementById('streak');
+        const timerDisplay = document.getElementById('timer');
+        const levelUpModal = document.getElementById('levelUp');
+        const newLevelDisplay = document.getElementById('newLevel');
+
+        const XP_PER_QUEST = 50;
+        const XP_PER_LEVEL = 300;
+        const TOTAL_QUESTS = 10; // 6 quests simples + 4 arenas
+
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'light') {
+                body.classList.add('light-theme');
+                themeToggle.textContent = '☀️';
+            } else {
+                body.classList.remove('light-theme');
+                themeToggle.textContent = '🌙';
+            }
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            const isLight = body.classList.contains('light-theme');
+            themeToggle.textContent = isLight ? '☀️' : '🌙';
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        });
+
+        // Carrega dados salvos
+        function loadData() {
+            const saved = JSON.parse(localStorage.getItem('questData') || '{}');
+            const today = new Date().toDateString();
+            
+            // Verifica se precisa resetar
+            if (saved.lastDate !== today) {
+                // Verifica se completou todas as quests ontem
+                if (saved.lastDate && saved.completed && saved.completed.length === TOTAL_QUESTS) {
+                    saved.streak = (saved.streak || 0) + 1;
+                } else if (saved.lastDate) {
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    if (saved.lastDate !== yesterday.toDateString()) {
+                        saved.streak = 0;
+                    }
+                }
+                saved.completed = [];
+                saved.lastDate = today;
+                localStorage.setItem('questData', JSON.stringify(saved));
+            }
+            
+            return saved;
+        }
+
+        function saveData(data) {
+            localStorage.setItem('questData', JSON.stringify(data));
+        }
+
+        function updateUI() {
+            const data = loadData();
+            const completed = data.completed || [];
+            
+            // Marca quests completadas
+            allQuests.forEach(quest => {
+                const questId = quest.dataset.quest;
+                if (completed.includes(questId)) {
+                    quest.classList.add('completed');
+                }
+            });
+            
+            // Atualiza progresso
+            const progress = (completed.length / TOTAL_QUESTS) * 100;
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = Math.round(progress) + '%';
+            
+            // Atualiza stats
+            xpDisplay.textContent = data.xp || 0;
+            levelDisplay.textContent = data.level || 1;
+            streakDisplay.textContent = data.streak || 0;
+        }
+
+        function checkLevelUp(oldXP, newXP, currentLevel) {
+            const oldLevel = Math.floor(oldXP / XP_PER_LEVEL) + 1;
+            const newLevel = Math.floor(newXP / XP_PER_LEVEL) + 1;
+            
+            if (newLevel > oldLevel) {
+                newLevelDisplay.textContent = newLevel;
+                levelUpModal.classList.add('show');
+                setTimeout(() => {
+                    levelUpModal.classList.remove('show');
+                }, 3000);
+                return newLevel;
+            }
+            return currentLevel;
+        }
+
+        // Adiciona evento de clique nas quests
+        allQuests.forEach(quest => {
+            quest.addEventListener('click', () => {
+                const data = loadData();
+                const questId = quest.dataset.quest;
+                const completed = data.completed || [];
+                
+                if (completed.includes(questId)) {
+                    // Remove
+                    data.completed = completed.filter(id => id !== questId);
+                    quest.classList.remove('completed');
+                    data.xp = Math.max(0, (data.xp || 0) - XP_PER_QUEST);
+                } else {
+                    // Adiciona
+                    completed.push(questId);
+                    data.completed = completed;
+                    quest.classList.add('completed');
+                    
+                    const oldXP = data.xp || 0;
+                    data.xp = oldXP + XP_PER_QUEST;
+                    data.level = checkLevelUp(oldXP, data.xp, data.level || 1);
+                    
+                    // Animação de pulse no XP
+                    xpDisplay.parentElement.classList.add('pulse');
+                    setTimeout(() => {
+                        xpDisplay.parentElement.classList.remove('pulse');
+                    }, 500);
+                }
+                
+                saveData(data);
+                updateUI();
+            });
+        });
+
+        // Timer para meia-noite
+        function updateTimer() {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            
+            const diff = tomorrow - now;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            timerDisplay.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // Inicializa
+        loadTheme();
+        updateUI();
+        updateTimer();
+        setInterval(updateTimer, 1000);
+        
+        // Verifica reset a cada minuto
+        setInterval(() => {
+            const data = loadData();
+            updateUI();
+        }, 60000);
     </script>
 </body>
 </html>
