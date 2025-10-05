@@ -1,660 +1,83 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WYD Quest Tracker</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #d4b896 0%, #c9a876 50%, #b89968 100%);
-            min-height: 100vh;
-            padding: 10px;
-            color: #5a3e2b;
-            transition: background 0.3s ease, color 0.3s ease;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
-
-        body.dark-theme {
-            background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 50%, #151515 100%);
-            color: #e0e0e0;
-        }
-
-        .container {
-            max-width: 100%;
-            margin: 0 auto;
-            padding: 0;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 15px;
-            padding: 15px 10px;
-            background: rgba(139, 90, 43, 0.15);
-            border-radius: 12px;
-            border: 2px solid rgba(139, 90, 43, 0.4);
-            box-shadow: 0 4px 16px rgba(90, 62, 43, 0.2);
-            position: relative;
-        }
-
-        body.dark-theme .header {
-            background: rgba(0, 0, 0, 0.3);
-            border-color: rgba(230, 126, 34, 0.4);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-        }
-
-        .header h1 {
-            color: #8b5a2b;
-            font-size: 1.6em;
-            text-shadow: 0 0 15px rgba(139, 90, 43, 0.3);
-            margin-bottom: 5px;
-        }
-
-        body.dark-theme .header h1 {
-            color: #e67e22;
-            text-shadow: 0 0 15px rgba(230, 126, 34, 0.5);
-        }
-
-        .header p {
-            font-size: 0.85em;
-            color: #6b4423;
-        }
-
-        body.dark-theme .header p {
-            color: #bbb;
-        }
-
-        .theme-toggle {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: transparent;
-            border: none;
-            color: rgba(139, 90, 43, 0.4);
-            padding: 6px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.2em;
-            transition: all 0.3s ease;
-            touch-action: manipulation;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        body.dark-theme .theme-toggle {
-            color: rgba(230, 126, 34, 0.5);
-        }
-
-        .theme-toggle:active {
-            background: rgba(139, 90, 43, 0.15);
-            transform: scale(0.9);
-        }
-
-        body.dark-theme .theme-toggle:active {
-            background: rgba(230, 126, 34, 0.15);
-        }
-
-        .header h1 {
-            color: #e67e22;
-            font-size: 2.5em;
-            text-shadow: 0 0 20px rgba(230, 126, 34, 0.5);
-            margin-bottom: 10px;
-        }
-
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .stat-card {
-            background: rgba(139, 90, 43, 0.1);
-            padding: 15px 10px;
-            border-radius: 10px;
-            border: 2px solid rgba(139, 90, 43, 0.3);
-            text-align: center;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            touch-action: manipulation;
-        }
-
-        body.dark-theme .stat-card {
-            background: rgba(0, 0, 0, 0.3);
-            border-color: rgba(230, 126, 34, 0.4);
-        }
-
-        .stat-card:active {
-            transform: scale(0.98);
-        }
-
-        .stat-label {
-            color: #8b5a2b;
-            font-size: 0.75em;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        body.dark-theme .stat-label {
-            color: #bbb;
-        }
-
-        .stat-value {
-            color: #8b5a2b;
-            font-size: 1.8em;
-            font-weight: bold;
-            text-shadow: 0 0 8px rgba(139, 90, 43, 0.3);
-        }
-
-        body.dark-theme .stat-value {
-            color: #e67e22;
-            text-shadow: 0 0 8px rgba(230, 126, 34, 0.5);
-        }
-
-        .level-bar {
-            background: rgba(255, 255, 255, 0.1);
-            height: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            overflow: hidden;
-        }
-
-        .level-progress {
-            height: 100%;
-            background: linear-gradient(90deg, #e67e22, #f39c12);
-            transition: width 0.5s ease;
-            box-shadow: 0 0 10px rgba(230, 126, 34, 0.5);
-        }
-
-        .quests-container {
-            background: rgba(139, 90, 43, 0.1);
-            padding: 15px 10px;
-            border-radius: 12px;
-            border: 2px solid rgba(139, 90, 43, 0.3);
-            box-shadow: 0 4px 16px rgba(90, 62, 43, 0.2);
-        }
-
-        body.dark-theme .quests-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-color: rgba(230, 126, 34, 0.4);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-        }
-
-        .quest-item {
-            background: rgba(212, 184, 150, 0.3);
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 10px;
-            border: 2px solid rgba(139, 90, 43, 0.2);
-            display: flex;
-            align-items: center;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            touch-action: manipulation;
-            min-height: 60px;
-        }
-
-        body.dark-theme .quest-item {
-            background: rgba(0, 0, 0, 0.2);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .quest-item:active {
-            transform: scale(0.98);
-            border-color: rgba(139, 90, 43, 0.6);
-        }
-
-        body.dark-theme .quest-item:active {
-            border-color: rgba(230, 126, 34, 0.7);
-            background: rgba(230, 126, 34, 0.2);
-        }
-
-        .quest-item.completed {
-            background: rgba(46, 204, 113, 0.1);
-            border-color: rgba(46, 204, 113, 0.3);
-            opacity: 0.7;
-        }
-
-        .quest-checkbox {
-            width: 28px;
-            height: 28px;
-            border: 3px solid #8b5a2b;
-            border-radius: 5px;
-            margin-right: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: all 0.2s ease;
-        }
-
-        body.dark-theme .quest-checkbox {
-            border-color: #e67e22;
-        }
-
-        .quest-item.completed .quest-checkbox {
-            background: #2ecc71;
-            border-color: #2ecc71;
-        }
-
-        .quest-checkbox::after {
-            content: '✓';
-            color: #fff;
-            font-size: 18px;
-            font-weight: bold;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .quest-item.completed .quest-checkbox::after {
-            opacity: 1;
-        }
-
-        .quest-info {
-            flex: 1;
-        }
-
-        .quest-name {
-            font-size: 1.05em;
-            font-weight: bold;
-            margin-bottom: 4px;
-            color: #5a3e2b;
-        }
-
-        body.dark-theme .quest-name {
-            color: #e0e0e0;
-        }
-
-        .quest-tag {
-            display: inline-block;
-            padding: 2px 8px;
-            background: rgba(139, 90, 43, 0.2);
-            border: 1px solid #8b5a2b;
-            border-radius: 5px;
-            font-size: 0.7em;
-            margin-right: 8px;
-            color: #8b5a2b;
-        }
-
-        body.dark-theme .quest-tag {
-            background: rgba(231, 76, 60, 0.3);
-            border-color: #e74c3c;
-            color: #e74c3c;
-        }
-
-        .quest-description {
-            color: #8b5a2b;
-            font-size: 0.85em;
-            margin-top: 3px;
-            opacity: 0.8;
-        }
-
-        body.dark-theme .quest-description {
-            color: #999;
-        }
-
-        .reset-timer {
-            text-align: center;
-            margin-top: 15px;
-            padding: 12px;
-            background: rgba(139, 90, 43, 0.15);
-            border-radius: 10px;
-            color: #6b4423;
-            font-size: 0.85em;
-        }
-
-        body.dark-theme .reset-timer {
-            background: rgba(0, 0, 0, 0.4);
-            color: #95a5a6;
-        }
-
-        .achievement-popup {
-            position: fixed;
-            top: 15px;
-            left: 10px;
-            right: 10px;
-            background: linear-gradient(135deg, #8b5a2b, #a67c52);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 8px 30px rgba(90, 62, 43, 0.5);
-            transform: translateY(-150px);
-            transition: transform 0.4s ease;
-            z-index: 1000;
-            max-width: calc(100% - 20px);
-        }
-
-        body.dark-theme .achievement-popup {
-            background: linear-gradient(135deg, #e67e22, #f39c12);
-        }
-
-        .achievement-popup.show {
-            transform: translateY(0);
-        }
-
-        .achievement-title {
-            font-size: 1.1em;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #fff;
-        }
-
-        .achievement-text {
-            font-size: 0.85em;
-            color: #fff;
-        }
-
-        @keyframes celebration {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .celebrating {
-            animation: celebration 0.5s ease;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="theme-toggle" onclick="toggleTheme()">🌓</div>
-            <h1>⚔️ WYD Quest Tracker ⚔️</h1>
-            <p>Acompanhe suas missões diárias</p>
-        </div>
-
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="stat-label">Streak Atual</div>
-                <div class="stat-value" id="streak">0</div>
-                <div class="stat-label" style="margin-top: 10px; font-size: 0.8em;">🔥 dias consecutivos</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-label">Nível</div>
-                <div class="stat-value" id="level">1</div>
-                <div class="level-bar">
-                    <div class="level-progress" id="levelProgress" style="width: 0%"></div>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-label">Quests Hoje</div>
-                <div class="stat-value"><span id="completed">0</span>/<span id="total">10</span></div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-label">Total XP</div>
-                <div class="stat-value" id="totalXP">0</div>
-            </div>
-        </div>
-
-        <div class="quests-container">
-            <div class="quest-item" data-quest="checkin">
-                <div class="quest-checkbox"></div>
-                <div class="quest-info">
-                    <div class="quest-name">Check-in</div>
-                    <div class="quest-description">Faça login no jogo</div>
-                </div>
-            </div>
-
-            <div class="quest-item" data-quest="espolios">
-                <div class="quest-checkbox"></div>
-                <div class="quest-info">
-                    <div class="quest-name">Espólios</div>
-                </div>
-            </div>
-
-            <div class="quest-item" data-quest="expedicao">
-                <div class="quest-checkbox"></div>
-                <div class="quest-info">
-                    <div class="quest-name">Expedição</div>
-                </div>
-            </div>
-
-            <div class="quest-item" data-quest="infernal">
-                <div class="quest-checkbox"></div>
-                <div class="quest-info">
-                    <div class="quest-name">Infernal</div>
-                </div>
-            </div>
-
-            <div class="quest-item" data-quest="deserto">
-                <div class="quest-checkbox"></div>
-                <div class="quest-info">
-                    <div class="quest-name">Deserto Desconhecido</div>
-                </div>
-            </div>
-
-            <div class="quest-item" data-quest="caca">
-                <div class="quest-checkbox"></div>
-                <div class="quest-info">
-                    <div class="quest-name">Pedido de Caça</div>
-                </div>
-            </div>
-
-            <div class="quest-item" data-quest="intel">
-                <div class="quest-checkbox"></div>
-                <div class="quest-info">
-                    <div class="quest-name">Intel Report</div>
-                </div>
-            </div>
-
-            <div class="quest-item" data-quest="arena1">
-                <div class="quest-checkbox"></div>
-                <div class="quest-info">
-                    <div class="quest-name">
-                        Arena 13:00
-                        <span class="quest-tag">PVP</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="quest-item" data-quest="arena2">
-                <div class="quest-checkbox"></div>
-                <div class="quest-info">
-                    <div class="quest-name">
-                        Arena 19:00
-                        <span class="quest-tag">PVP</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="quest-item" data-quest="arena3">
-                <div class="quest-checkbox"></div>
-                <div class="quest-info">
-                    <div class="quest-name">
-                        Arena 20:30
-                        <span class="quest-tag">PVP</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="quest-item" data-quest="arena4">
-                <div class="quest-checkbox"></div>
-                <div class="quest-info">
-                    <div class="quest-name">
-                        Arena 23:00
-                        <span class="quest-tag">PVP</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="reset-timer">
-                Reset diário em: <strong id="resetTimer">00:00:00</strong>
-            </div>
-        </div>
-    </div>
-
-    <div class="achievement-popup" id="achievementPopup">
-        <div class="achievement-title">🎉 Conquista Desbloqueada!</div>
-        <div class="achievement-text" id="achievementText"></div>
-    </div>
-
-    <script>
+<script>
         const data = {
             quests: {},
             streak: 0,
             totalXP: 0,
             level: 1,
             lastCompletedDate: null,
-            theme: 'default'
+            theme: 'default',
+            notifiedQuests: {}
         };
 
-        function loadData() {
-            const saved = localStorage.getItem('wydQuestData');
-            if (saved) {
-                Object.assign(data, JSON.parse(saved));
-                applyTheme();
-                checkDailyReset();
-                updateUI();
-            }
+        // Sistema de notificação sonora
+        const questSchedule = [
+            { id: 'arena1', name: 'Arena 13:00', hour: 13, minute: 0 },
+            { id: 'arena2', name: 'Arena 19:00', hour: 19, minute: 0 },
+            { id: 'arena3', name: 'Arena 20:30', hour: 20, minute: 30 },
+            { id: 'arena4', name: 'Arena 23:00', hour: 23, minute: 0 }
+        ];
+
+        function playNotificationSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const duration = 0.3;
+            
+            // Primeira nota
+            const oscillator1 = audioContext.createOscillator();
+            const gainNode1 = audioContext.createGain();
+            oscillator1.connect(gainNode1);
+            gainNode1.connect(audioContext.destination);
+            oscillator1.frequency.value = 800;
+            gainNode1.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            oscillator1.start(audioContext.currentTime);
+            oscillator1.stop(audioContext.currentTime + duration);
+            
+            // Segunda nota (mais aguda)
+            setTimeout(() => {
+                const oscillator2 = audioContext.createOscillator();
+                const gainNode2 = audioContext.createGain();
+                oscillator2.connect(gainNode2);
+                gainNode2.connect(audioContext.destination);
+                oscillator2.frequency.value = 1000;
+                gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                oscillator2.start(audioContext.currentTime);
+                oscillator2.stop(audioContext.currentTime + duration);
+            }, 150);
         }
 
-        function applyTheme() {
-            document.body.className = '';
-            if (data.theme === 'dark') {
-                document.body.classList.add('dark-theme');
-            }
-        }
-
-        function toggleTheme() {
-            if (data.theme === 'dark') {
-                data.theme = 'default';
-            } else {
-                data.theme = 'dark';
-            }
-            applyTheme();
-            saveData();
-        }
-
-        function saveData() {
-            localStorage.setItem('wydQuestData', JSON.stringify(data));
-        }
-
-        function checkDailyReset() {
+        function checkQuestNotifications() {
             const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
             const today = now.toDateString();
             
-            if (data.lastCompletedDate !== today) {
-                const yesterday = new Date(now);
-                yesterday.setDate(yesterday.getDate() - 1);
-                
-                if (data.lastCompletedDate === yesterday.toDateString() && Object.values(data.quests).some(q => q)) {
-                    data.streak++;
-                } else if (data.lastCompletedDate && data.lastCompletedDate !== yesterday.toDateString()) {
-                    data.streak = 0;
-                }
-                
-                data.quests = {};
-                data.lastCompletedDate = null;
+            // Reseta notificações no início do dia
+            if (!data.notifiedQuests[today]) {
+                data.notifiedQuests = { [today]: {} };
                 saveData();
             }
-        }
-
-        function updateUI() {
-            const completed = Object.values(data.quests).filter(q => q).length;
-            const total = document.querySelectorAll('.quest-item').length;
             
-            document.getElementById('completed').textContent = completed;
-            document.getElementById('total').textContent = total;
-            document.getElementById('streak').textContent = data.streak;
-            document.getElementById('level').textContent = data.level;
-            document.getElementById('totalXP').textContent = data.totalXP;
-            
-            const progress = (data.totalXP % 100);
-            document.getElementById('levelProgress').style.width = progress + '%';
-            
-            document.querySelectorAll('.quest-item').forEach(item => {
-                const questId = item.dataset.quest;
-                if (data.quests[questId]) {
-                    item.classList.add('completed');
-                } else {
-                    item.classList.remove('completed');
+            questSchedule.forEach(quest => {
+                // Calcula o horário de notificação (5 minutos antes)
+                let notifyHour = quest.hour;
+                let notifyMinute = quest.minute - 5;
+                
+                if (notifyMinute < 0) {
+                    notifyMinute += 60;
+                    notifyHour -= 1;
                 }
-            });
-        }
-
-        function showAchievement(text) {
-            const popup = document.getElementById('achievementPopup');
-            document.getElementById('achievementText').textContent = text;
-            popup.classList.add('show');
-            
-            setTimeout(() => {
-                popup.classList.remove('show');
-            }, 3000);
-        }
-
-        function addXP(amount) {
-            data.totalXP += amount;
-            const newLevel = Math.floor(data.totalXP / 100) + 1;
-            
-            if (newLevel > data.level) {
-                data.level = newLevel;
-                showAchievement(`Level Up! Você alcançou o nível ${data.level}!`);
-            }
-        }
-
-        function updateTimer() {
-            const now = new Date();
-            const tomorrow = new Date(now);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0, 0, 0, 0);
-            
-            const diff = tomorrow - now;
-            const hours = Math.floor(diff / 3600000);
-            const minutes = Math.floor((diff % 3600000) / 60000);
-            const seconds = Math.floor((diff % 60000) / 1000);
-            
-            document.getElementById('resetTimer').textContent = 
-                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        }
-
-        document.querySelectorAll('.quest-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const questId = this.dataset.quest;
-                const wasCompleted = data.quests[questId];
                 
-                data.quests[questId] = !wasCompleted;
-                
-                if (!wasCompleted) {
-                    const now = new Date();
-                    data.lastCompletedDate = now.toDateString();
-                    addXP(10);
+                // Verifica se é hora de notificar
+                if (currentHour === notifyHour && currentMinute === notifyMinute) {
+                    const notificationKey = `${quest.id}_${today}`;
                     
-                    const completed = Object.values(data.quests).filter(q => q).length;
-                    const total = document.querySelectorAll('.quest-item').length;
-                    
-                    if (completed === total) {
-                        addXP(50);
-                        showAchievement('Todas as quests completadas! +50 XP Bônus!');
-                        document.querySelector('.stats-container').classList.add('celebrating');
-                        setTimeout(() => {
-                            document.querySelector('.stats-container').classList.remove('celebrating');
-                        }, 500);
+                    if (!data.notifiedQuests[today][notificationKey] && !data.quests[quest.id]) {
+                        playNotificationSound();
+                        showAchievement(`⏰ ${quest.name} começa em 5 minutos!`);
+                        data.notifiedQuests[today][notificationKey] = true;
+                        saveData();
                     }
-                } else {
-                    data.totalXP = Math.max(0, data.totalXP - 10);
-                    data.level = Math.floor(data.totalXP / 100) + 1;
                 }
-                
-                saveData();
-                updateUI();
             });
-        });
-
-        loadData();
-        updateTimer();
-        setInterval(updateTimer, 1000);
-        setInterval(checkDailyReset, 60000);
-    </script>
-</body>
-</html>
+        }
