@@ -334,6 +334,15 @@
             transform: translateY(0);
         }
 
+        .achievement-popup.persistent {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 8px 30px rgba(90, 62, 43, 0.5); }
+            50% { box-shadow: 0 8px 40px rgba(230, 126, 34, 0.8); }
+        }
+
         .achievement-title {
             font-size: 1.1em;
             font-weight: bold;
@@ -344,6 +353,26 @@
         .achievement-text {
             font-size: 0.85em;
             color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .notification-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .notification-close:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
         }
 
         @keyframes celebration {
@@ -409,14 +438,14 @@
             <div class="quest-item" data-quest="expedicao">
                 <div class="quest-checkbox"></div>
                 <div class="quest-info">
-                    <div class="quest-name">Expedição</div>
+                    <div class="quest-name">Expedição <span style="font-size: 0.85em; opacity: 0.7;">(3/3)</span></div>
                 </div>
             </div>
 
             <div class="quest-item" data-quest="infernal">
                 <div class="quest-checkbox"></div>
                 <div class="quest-info">
-                    <div class="quest-name">Infernal</div>
+                    <div class="quest-name">Infernal <span style="font-size: 0.85em; opacity: 0.7;">(2/2)</span></div>
                 </div>
             </div>
 
@@ -490,6 +519,7 @@
     <div class="achievement-popup" id="achievementPopup">
         <div class="achievement-title">🎉 Conquista Desbloqueada!</div>
         <div class="achievement-text" id="achievementText"></div>
+        <button class="notification-close" id="notificationClose" style="display: none;">OK, Entendi!</button>
     </div>
 
     <script>
@@ -572,9 +602,7 @@
                     
                     if (!data.notifiedQuests[today][notificationKey] && !data.quests[quest.id]) {
                         playNotificationSound();
-                        showAchievement(`⏰ ${quest.name} começa em 5 minutos!`);
-                        data.notifiedQuests[today][notificationKey] = true;
-                        saveData();
+                        showPersistentNotification(`⏰ ${quest.name} começa em 5 minutos!`, quest.id);
                     }
                 }
             });
@@ -662,6 +690,29 @@
             setTimeout(() => {
                 popup.classList.remove('show');
             }, 3000);
+        }
+
+        function showPersistentNotification(text, questId) {
+            const popup = document.getElementById('achievementPopup');
+            const closeBtn = document.getElementById('notificationClose');
+            
+            document.getElementById('achievementText').textContent = text;
+            popup.classList.add('show', 'persistent');
+            closeBtn.style.display = 'block';
+            
+            closeBtn.onclick = () => {
+                popup.classList.remove('show', 'persistent');
+                closeBtn.style.display = 'none';
+                
+                // Marca como notificado para não repetir
+                const today = new Date().toDateString();
+                if (!data.notifiedQuests[today]) {
+                    data.notifiedQuests[today] = {};
+                }
+                const notificationKey = `${questId}_${today}`;
+                data.notifiedQuests[today][notificationKey] = true;
+                saveData();
+            };
         }
 
         function addXP(amount) {
