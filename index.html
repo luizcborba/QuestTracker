@@ -253,6 +253,63 @@
             opacity: 1;
         }
 
+        .quest-item.multi-quest {
+            flex-direction: row;
+            padding: 12px;
+        }
+
+        .quest-subcheck {
+            width: 28px;
+            height: 28px;
+            border: 3px solid #8b5a2b;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+            flex-shrink: 0;
+            margin-right: 8px;
+        }
+
+        body.dark-theme .quest-subcheck {
+            border-color: #e67e22;
+        }
+
+        .quest-subcheck:active {
+            transform: scale(0.95);
+        }
+
+        .quest-subcheck:last-child {
+            margin-right: 0;
+        }
+
+        .quest-subcheck.completed {
+            background: #2ecc71;
+            border-color: #2ecc71;
+        }
+
+        .quest-subcheck::after {
+            content: '✓';
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .quest-subcheck.completed::after {
+            opacity: 1;
+        }
+
+        .quest-subchecks-container {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-right: 12px;
+        }
+
         .quest-info {
             flex: 1;
         }
@@ -435,17 +492,24 @@
                 </div>
             </div>
 
-            <div class="quest-item" data-quest="expedicao">
-                <div class="quest-checkbox"></div>
+            <div class="quest-item multi-quest" data-quest="expedicao">
+                <div class="quest-subchecks-container">
+                    <div class="quest-subcheck" data-subquest="expedicao-1"></div>
+                    <div class="quest-subcheck" data-subquest="expedicao-2"></div>
+                    <div class="quest-subcheck" data-subquest="expedicao-3"></div>
+                </div>
                 <div class="quest-info">
-                    <div class="quest-name">Expedição <span style="font-size: 0.85em; opacity: 0.7;">(3/3)</span></div>
+                    <div class="quest-name">Expedição</div>
                 </div>
             </div>
 
-            <div class="quest-item" data-quest="infernal">
-                <div class="quest-checkbox"></div>
+            <div class="quest-item multi-quest" data-quest="infernal">
+                <div class="quest-subchecks-container">
+                    <div class="quest-subcheck" data-subquest="infernal-1"></div>
+                    <div class="quest-subcheck" data-subquest="infernal-2"></div>
+                </div>
                 <div class="quest-info">
-                    <div class="quest-name">Infernal <span style="font-size: 0.85em; opacity: 0.7;">(2/2)</span></div>
+                    <div class="quest-name">Infernal</div>
                 </div>
             </div>
 
@@ -525,12 +589,14 @@
     <script>
         const data = {
             quests: {},
+            subquests: {},
             streak: 0,
             totalXP: 0,
             level: 1,
             lastCompletedDate: null,
             theme: 'default',
-            notifiedQuests: {}
+            notifiedQuests: {},
+            notificationInterval: null
         };
 
         // Sistema de notificação sonora
@@ -574,6 +640,22 @@
             }
         }
 
+        function startNotificationLoop() {
+            if (data.notificationInterval) {
+                clearInterval(data.notificationInterval);
+            }
+            data.notificationInterval = setInterval(() => {
+                playNotificationSound();
+            }, 3000); // Repete a cada 3 segundos
+        }
+
+        function stopNotificationLoop() {
+            if (data.notificationInterval) {
+                clearInterval(data.notificationInterval);
+                data.notificationInterval = null;
+            }
+        }
+
         function checkQuestNotifications() {
             const now = new Date();
             const currentHour = now.getHours();
@@ -601,7 +683,7 @@
                     const notificationKey = `${quest.id}_${today}`;
                     
                     if (!data.notifiedQuests[today][notificationKey] && !data.quests[quest.id]) {
-                        playNotificationSound();
+                        startNotificationLoop(); // Inicia loop de som
                         showPersistentNotification(`⏰ ${quest.name} começa em 5 minutos!`, quest.id);
                     }
                 }
@@ -654,14 +736,29 @@
                 }
                 
                 data.quests = {};
+                data.subquests = {};
                 data.lastCompletedDate = null;
                 saveData();
             }
         }
 
         function updateUI() {
-            const completed = Object.values(data.quests).filter(q => q).length;
+            let completed = 0;
             const total = document.querySelectorAll('.quest-item').length;
+            
+            // Conta quests normais completadas
+            document.querySelectorAll('.quest-item:not(.multi-quest)').forEach(item => {
+                if (data.quests[item.dataset.quest]) {
+                    completed++;
+                }
+            });
+            
+            // Conta multi-quests (expedição e infernal)
+            const expedicaoCompleted = ['expedicao-1', 'expedicao-2', 'expedicao-3'].every(id => data.subquests[id]);
+            const infernalCompleted = ['infernal-1', 'infernal-2'].every(id => data.subquests[id]);
+            
+            if (expedicaoCompleted) completed++;
+            if (infernalCompleted) completed++;
             
             document.getElementById('completed').textContent = completed;
             document.getElementById('total').textContent = total;
@@ -672,7 +769,8 @@
             const progress = (data.totalXP % 100);
             document.getElementById('levelProgress').style.width = progress + '%';
             
-            document.querySelectorAll('.quest-item').forEach(item => {
+            // Atualiza quests normais
+            document.querySelectorAll('.quest-item:not(.multi-quest)').forEach(item => {
                 const questId = item.dataset.quest;
                 if (data.quests[questId]) {
                     item.classList.add('completed');
@@ -680,6 +778,29 @@
                     item.classList.remove('completed');
                 }
             });
+            
+            // Atualiza subquests
+            document.querySelectorAll('.quest-subcheck').forEach(subcheck => {
+                const subquestId = subcheck.dataset.subquest;
+                if (data.subquests[subquestId]) {
+                    subcheck.classList.add('completed');
+                } else {
+                    subcheck.classList.remove('completed');
+                }
+            });
+            
+            // Atualiza visual das multi-quests
+            if (expedicaoCompleted) {
+                document.querySelector('[data-quest="expedicao"]').classList.add('completed');
+            } else {
+                document.querySelector('[data-quest="expedicao"]').classList.remove('completed');
+            }
+            
+            if (infernalCompleted) {
+                document.querySelector('[data-quest="infernal"]').classList.add('completed');
+            } else {
+                document.querySelector('[data-quest="infernal"]').classList.remove('completed');
+            }
         }
 
         function showAchievement(text) {
@@ -701,6 +822,7 @@
             closeBtn.style.display = 'block';
             
             closeBtn.onclick = () => {
+                stopNotificationLoop(); // Para o loop de som
                 popup.classList.remove('show', 'persistent');
                 closeBtn.style.display = 'none';
                 
@@ -740,7 +862,7 @@
                 `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        document.querySelectorAll('.quest-item').forEach(item => {
+        document.querySelectorAll('.quest-item:not(.multi-quest)').forEach(item => {
             item.addEventListener('click', function() {
                 const questId = this.dataset.quest;
                 const wasCompleted = data.quests[questId];
@@ -752,17 +874,7 @@
                     data.lastCompletedDate = now.toDateString();
                     addXP(10);
                     
-                    const completed = Object.values(data.quests).filter(q => q).length;
-                    const total = document.querySelectorAll('.quest-item').length;
-                    
-                    if (completed === total) {
-                        addXP(50);
-                        showAchievement('Todas as quests completadas! +50 XP Bônus!');
-                        document.querySelector('.stats-container').classList.add('celebrating');
-                        setTimeout(() => {
-                            document.querySelector('.stats-container').classList.remove('celebrating');
-                        }, 500);
-                    }
+                    checkAllQuestsCompleted();
                 } else {
                     data.totalXP = Math.max(0, data.totalXP - 10);
                     data.level = Math.floor(data.totalXP / 100) + 1;
@@ -772,6 +884,59 @@
                 updateUI();
             });
         });
+
+        // Handler para sub-checkboxes
+        document.querySelectorAll('.quest-subcheck').forEach(subcheck => {
+            subcheck.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const subquestId = this.dataset.subquest;
+                const wasCompleted = data.subquests[subquestId];
+                
+                data.subquests[subquestId] = !wasCompleted;
+                
+                if (!wasCompleted) {
+                    const now = new Date();
+                    data.lastCompletedDate = now.toDateString();
+                    addXP(10);
+                    
+                    checkAllQuestsCompleted();
+                } else {
+                    data.totalXP = Math.max(0, data.totalXP - 10);
+                    data.level = Math.floor(data.totalXP / 100) + 1;
+                }
+                
+                saveData();
+                updateUI();
+            });
+        });
+
+        function checkAllQuestsCompleted() {
+            let completed = 0;
+            const total = document.querySelectorAll('.quest-item').length;
+            
+            // Conta quests normais
+            document.querySelectorAll('.quest-item:not(.multi-quest)').forEach(item => {
+                if (data.quests[item.dataset.quest]) {
+                    completed++;
+                }
+            });
+            
+            // Conta multi-quests
+            const expedicaoCompleted = ['expedicao-1', 'expedicao-2', 'expedicao-3'].every(id => data.subquests[id]);
+            const infernalCompleted = ['infernal-1', 'infernal-2'].every(id => data.subquests[id]);
+            
+            if (expedicaoCompleted) completed++;
+            if (infernalCompleted) completed++;
+            
+            if (completed === total) {
+                addXP(50);
+                showAchievement('Todas as quests completadas! +50 XP Bônus!');
+                document.querySelector('.stats-container').classList.add('celebrating');
+                setTimeout(() => {
+                    document.querySelector('.stats-container').classList.remove('celebrating');
+                }, 500);
+            }
+        }
 
         loadData();
         updateTimer();
